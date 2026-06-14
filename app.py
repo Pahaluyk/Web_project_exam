@@ -30,19 +30,20 @@ def unauthorized():
 # ── База данных ───────────────────────────────────────────────────────────────
 
 def get_db():
-    """Возвращает соединение с БД, создавая его при первом обращении в рамках запроса."""
     if 'db' not in g:
         g.db = mysql.connector.connect(
             host=app.config['MYSQL_HOST'],
             user=app.config['MYSQL_USER'],
             password=app.config['MYSQL_PASSWORD'],
-            port=int(os.environ.get('MYSQL_PORT', 3306)),
             database=app.config['MYSQL_DB'],
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci',
             autocommit=False,
             use_unicode=True
         )
+        cur = g.db.cursor()
+        cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
+        cur.close()
     return g.db
 
 
