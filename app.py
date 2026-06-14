@@ -43,6 +43,7 @@ def get_db():
         )
         cur = g.db.cursor()
         cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
+        g.db.cmd_query("SET NAMES 'utf8mb4'")
         cur.close()
     return g.db
 
