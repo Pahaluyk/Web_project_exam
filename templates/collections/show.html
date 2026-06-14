@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import star_rating %}
+
+{% block title %}{{ collection.name }} — Мои подборки{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('collections_index') }}">Мои подборки</a>
+    </li>
+    <li class="breadcrumb-item active">{{ collection.name }}</li>
+  </ol>
+</nav>
+
+<h2 class="mb-4">
+  <i class="bi bi-collection me-2"></i>{{ collection.name }}
+</h2>
+
+{% if books %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  {% for book in books %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      <div class="d-flex">
+        {% if book.cover_filename %}
+          <img src="{{ url_for('serve_cover', filename=book.cover_filename) }}"
+               class="cover-thumb flex-shrink-0 m-2 rounded"
+               alt="Обложка">
+        {% else %}
+          <div class="cover-thumb flex-shrink-0 m-2 rounded bg-secondary d-flex
+                      align-items-center justify-content-center">
+            <i class="bi bi-image text-white fs-3"></i>
+          </div>
+        {% endif %}
+
+        <div class="card-body p-2">
+          <h6 class="card-title mb-1 fw-bold">{{ book.title }}</h6>
+          <p class="card-text text-muted small mb-1">{{ book.author }}, {{ book.year }}</p>
+
+          <div class="mb-1">
+            {% for gname in book.genres %}
+              <span class="badge bg-secondary me-1">{{ gname }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="small">
+            {{ star_rating(book.avg_rating) }}
+            <span class="text-muted ms-1">
+              {% if book.avg_rating %}{{ '%.1f'|format(book.avg_rating) }}{% else %}—{% endif %}
+              ({{ book.review_count }}
+              {% if book.review_count == 1 %}рецензия
+              {% elif book.review_count in [2,3,4] %}рецензии
+              {% else %}рецензий{% endif %})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer bg-transparent">
+        <a href="{{ url_for('book_show', book_id=book.id) }}"
+           class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye"></i> Просмотр
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+  <div class="alert alert-info">
+    В этой подборке пока нет книг.
+    Добавьте их со страницы просмотра книги.
+  </div>
+{% endif %}
+
+<div class="mt-4">
+  <a href="{{ url_for('collections_index') }}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Назад к подборкам
+  </a>
+</div>
+
+{% endblock %}

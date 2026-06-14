@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import star_rating %}
+
+{% block title %}Главная — Электронная библиотека{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="bi bi-journals me-2"></i>Каталог книг</h2>
+  {% if current_user.is_authenticated and current_user.is_admin %}
+    <a href="{{ url_for('book_create') }}" class="btn btn-success">
+      <i class="bi bi-plus-circle me-1"></i>Добавить книгу
+    </a>
+  {% endif %}
+</div>
+
+{% if books %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+  {% for book in books %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      <div class="d-flex">
+        {% if book.cover_filename %}
+          <img src="{{ url_for('serve_cover', filename=book.cover_filename) }}"
+               class="cover-thumb flex-shrink-0 m-2 rounded"
+               alt="Обложка">
+        {% else %}
+          <div class="cover-thumb flex-shrink-0 m-2 rounded bg-secondary d-flex
+                      align-items-center justify-content-center">
+            <i class="bi bi-image text-white fs-3"></i>
+          </div>
+        {% endif %}
+
+        <div class="card-body p-2">
+          <h6 class="card-title mb-1 fw-bold">{{ book.title }}</h6>
+          <p class="card-text text-muted small mb-1">{{ book.author }}, {{ book.year }}</p>
+
+          <div class="mb-1">
+            {% for gname in book.genres %}
+              <span class="badge bg-secondary me-1">{{ gname }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="small">
+            {{ star_rating(book.avg_rating) }}
+            <span class="text-muted ms-1">
+              {% if book.avg_rating %}{{ '%.1f'|format(book.avg_rating) }}{% else %}—{% endif %}
+              ({{ book.review_count }}
+              {% if book.review_count == 1 %}рецензия
+              {% elif book.review_count in [2,3,4] %}рецензии
+              {% else %}рецензий{% endif %})
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer bg-transparent d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('book_show', book_id=book.id) }}"
+           class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye"></i> Просмотр
+        </a>
+
+        {% if current_user.is_authenticated and
+              (current_user.is_admin or current_user.is_moderator) %}
+          <a href="{{ url_for('book_edit', book_id=book.id) }}"
+             class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-pencil"></i> Редактировать
+          </a>
+        {% endif %}
+
+        {% if current_user.is_authenticated and current_user.is_admin %}
+          <button type="button" class="btn btn-sm btn-outline-danger btn-delete"
+                  data-book-id="{{ book.id }}"
+                  data-book-title="{{ book.title }}">
+            <i class="bi bi-trash"></i> Удалить
+          </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+
+{% if total_pages > 1 %}
+<nav class="mt-4" aria-label="Страницы">
+  <ul class="pagination justify-content-center">
+    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('index', page=page-1) }}">&laquo;</a>
+    </li>
+    {% for p in range(1, total_pages+1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="{{ url_for('index', page=p) }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+      <a class="page-link" href="{{ url_for('index', page=page+1) }}">&raquo;</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+  <div class="alert alert-info">В библиотеке пока нет книг.</div>
+{% endif %}
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Удаление книги</h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="deleteModalBody">
+        Вы уверены, что хотите удалить книгу?
+      </div>
+      <div class="modal-footer">
+        <form id="deleteForm" method="post">
+          <button type="button" class="btn btn-secondary"
+                  data-bs-dismiss="modal">Нет</button>
+          <button type="submit" class="btn btn-danger">Да</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var deleteModal = document.getElementById('deleteModal');
+  var deleteForm  = document.getElementById('deleteForm');
+  var deleteBody  = document.getElementById('deleteModalBody');
+
+  document.querySelectorAll('.btn-delete').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var bookId    = this.dataset.bookId;
+      var bookTitle = this.dataset.bookTitle;
+      deleteBody.textContent = 'Вы уверены, что хотите удалить книгу «' + bookTitle + '»?';
+      deleteForm.action = '/books/' + bookId + '/delete';
+      bootstrap.Modal.getOrCreateInstance(deleteModal).show();
+    });
+  });
+});
+</script>
+{% endblock %}

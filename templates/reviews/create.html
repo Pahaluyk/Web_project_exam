@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Написать рецензию — {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Главная</a></li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('book_show', book_id=book.id) }}">{{ book.title }}</a>
+        </li>
+        <li class="breadcrumb-item active">Написать рецензию</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h4 class="mb-0">
+          <i class="bi bi-pencil me-2"></i>Рецензия на «{{ book.title }}»
+        </h4>
+      </div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+
+          <div class="mb-3">
+            <label for="rating" class="form-label fw-semibold">
+              Оценка <span class="text-danger">*</span>
+            </label>
+            <select class="form-select" id="rating" name="rating" required>
+              <option value="5" {% if form_data.get('rating','5') == '5' %}selected{% endif %}>
+                5 — Отлично
+              </option>
+              <option value="4" {% if form_data.get('rating') == '4' %}selected{% endif %}>
+                4 — Хорошо
+              </option>
+              <option value="3" {% if form_data.get('rating') == '3' %}selected{% endif %}>
+                3 — Удовлетворительно
+              </option>
+              <option value="2" {% if form_data.get('rating') == '2' %}selected{% endif %}>
+                2 — Неудовлетворительно
+              </option>
+              <option value="1" {% if form_data.get('rating') == '1' %}selected{% endif %}>
+                1 — Плохо
+              </option>
+              <option value="0" {% if form_data.get('rating') == '0' %}selected{% endif %}>
+                0 — Ужасно
+              </option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="text" class="form-label fw-semibold">
+              Текст рецензии <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="text" name="text"
+                      rows="10">{{ form_data.get('text', '') }}</textarea>
+          </div>
+
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-save me-1"></i>Сохранить
+            </button>
+            <a href="{{ url_for('book_show', book_id=book.id) }}"
+               class="btn btn-outline-secondary">Отмена</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const easyMDE = new EasyMDE({
+    element: document.getElementById('text'),
+    spellChecker: false,
+    autosave: { enabled: false },
+    toolbar: ['bold','italic','|','unordered-list','ordered-list','|',
+              'link','|','preview','guide'],
+  });
+</script>
+{% endblock %}
