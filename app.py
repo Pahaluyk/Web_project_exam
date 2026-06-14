@@ -36,6 +36,7 @@ def get_db():
             host=app.config['MYSQL_HOST'],
             user=app.config['MYSQL_USER'],
             password=app.config['MYSQL_PASSWORD'],
+            port=int(os.environ.get('MYSQL_PORT', 3306)),
             database=app.config['MYSQL_DB'],
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci',
